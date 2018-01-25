@@ -38,7 +38,8 @@ def get_detalhes(detalhes_link):
 	
 	detalhes = Detalhes()
 	detalhes.quantidade_diarias = remove_espacos(lis[2].text.split(":")[1]).replace(",",".")
-	detalhes.valor_diaria = remove_espacos(lis[3].text.split(":")[1]).replace(",",".")
+	valor_diaria = remove_espacos(lis[3].text.split(":")[1]).replace(",",".").replace(' ', '')
+	detalhes.valor_diaria = valor_diaria if valor_diaria!='' else '0.0'
 	detalhes.tipo_passagem = remove_espacos(lis[4].text.split(":")[1])
 	detalhes.relatorio_link = URL_ROOT+'/missao-oficial/'+relatorio_link
 	return detalhes
