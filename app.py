@@ -11,8 +11,8 @@ def remove_espacos(texto):
 	return re.sub('[\t|\n|\r]', '', texto)
 
 def request_viagens(data_inicial, data_final):
-	params = {'deputado':1, 'nome-deputado':'', 'nome-servidor':'', 'nome-evento':'', 
-				'dati':data_inicial.strftime('%d/%m/%Y'), 'datf':data_final.strftime('%d/%m/%Y')}
+	params = {'deputado':1, 'nome-deputado':'', 'nome-servidor':'',
+				'nome-evento':'', 'dati':data_inicial, 'datf':data_final}
 	response = requests.get(URL_ORIGIN, params=params)
 	return response
 
@@ -60,8 +60,27 @@ def get_viagens_from_request(response):
 		viagens.append(viagem)
 	return viagens
 
-connect("mongodb+srv://patriciosousafilho:patricio@cluster0-0oxvy.mongodb.net/test")
-di = datetime(2017, 11, 1)
-df = datetime(2017, 11, 15)
-res = request_viagens(di, df)
-viagens = get_viagens_from_request(res)
+@click.command()
+@click.option('-di', '--datainicial', default=None, help='Data inicial das viagens a serem importados. É um parâmetro obrigatório. Formato dd/mm/aaaa.')
+@click.option('-df', '--datafinal', default=None, help='Data final das viagens a serem importados. NÃO é um parâmetro obrigatório. Formato dd/mm/aaaa.')
+def do_scraping(datainicial, datafinal):
+	if datainicial:
+		try:
+			datetime.strptime(datainicial, '%d/%m/%Y')
+			if not datafinal:
+				datafinal = datetime.now().strftime('%d/%m/%Y')
+			else:
+				datetime.strptime(datafinal, '%d/%m/%Y')
+			
+			connect("mongodb+srv://patriciosousafilho:patricio@cluster0-0oxvy.mongodb.net/test")
+			res = request_viagens(datainicial, datafinal)
+			viagens = get_viagens_from_request(res)
+			print(str(len(viagens))+' Viagens salvas com sucesso')
+		except ValueError:
+			print('Data em formato inválido')
+			return 
+	else:
+		print('A data inicial é obrigatória')
+
+if __name__ == '__main__':
+	do_scraping()
