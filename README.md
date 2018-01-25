@@ -9,4 +9,5 @@ Você pode executar o programa utilizando o seguinte comando:
 ```
 python3 app.py -di <data_inicial> -df <data_final>
 ```
+
 Onde os parâmetros `data_inicial` e `data_final` estão no formato *dd/mm/aaaa* e representam o período no qual devem ser buscadas as viagens. A `data_final` não é obrigatória, e se omitida serão buscadas todas as viagens da `data_inicial` até a data atual.
