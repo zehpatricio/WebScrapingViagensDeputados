@@ -6,17 +6,31 @@ from models import *
 
 URL_ROOT = 'http://www.camara.leg.br'
 URL_ORIGIN = URL_ROOT + '/missao-oficial/missao-pesquisa'
+URL_MONGODB = 'mongodb+srv://patriciosousafilho:patricio@cluster0-0oxvy.mongodb.net/test'
 
 def remove_espacos(texto):
 	return re.sub('[\t|\n|\r]', '', texto)
 
 def request_viagens(data_inicial, data_final):
+	"""
+	Função para requisitar a página que contém as viagens ocorridas em determinado período.
+	
+	Parâmetros:
+	data_inicial -- String no formato 'dd/mm/YYYY' representando o início do período a ser buscado
+	data_final -- String no formato 'dd/mm/YYYY' representando o fim do período a ser buscado
+	"""
 	params = {'deputado':1, 'nome-deputado':'', 'nome-servidor':'',
 				'nome-evento':'', 'dati':data_inicial, 'datf':data_final}
 	response = requests.get(URL_ORIGIN, params=params)
 	return response
 
 def get_detalhes(detalhes_link):
+	"""
+	Função para requisitar, processar e retornar os detalhes de uma viagem com base no link para eles.
+	
+	Parâmetros:
+	detalhes_link -- String contendo o link relativo da página dos detalhes da viagem requerida
+	"""
 	response = requests.get(URL_ROOT+detalhes_link)
 	html = etree.HTML(response.text)
 	lis = html.xpath('//div[@class="sessionBox gradient"]/ul/li')
@@ -30,6 +44,12 @@ def get_detalhes(detalhes_link):
 	return detalhes
 
 def get_viagens_from_request(response):
+	"""
+	Função para processar e salvar as viagens com base na página HTML que as contêm.
+	
+	Parâmetros:
+	response -- Resposta da requisição da página contendo as viagens a serem processadas e salvas
+	"""
 	viagens = []
 	html = etree.HTML(response.text)
 	linhas = html.xpath('//tbody[@class="coresAlternadas"]/tr')
@@ -64,6 +84,13 @@ def get_viagens_from_request(response):
 @click.option('-di', '--datainicial', default=None, help='Data inicial das viagens a serem importados. É um parâmetro obrigatório. Formato dd/mm/aaaa.')
 @click.option('-df', '--datafinal', default=None, help='Data final das viagens a serem importados. NÃO é um parâmetro obrigatório. Formato dd/mm/aaaa.')
 def do_scraping(datainicial, datafinal):
+	"""
+	Essa função verifica os formatos de data e realiza a busca, processamento e persistência das viagens.
+	
+	Parâmetros:
+	datainicial -- String no formato 'dd/mm/YYYY'
+	datafinal -- String no formato 'dd/mm/YYYY'
+	"""
 	if datainicial:
 		try:
 			datetime.strptime(datainicial, '%d/%m/%Y')
@@ -72,7 +99,7 @@ def do_scraping(datainicial, datafinal):
 			else:
 				datetime.strptime(datafinal, '%d/%m/%Y')
 			
-			connect("mongodb+srv://patriciosousafilho:patricio@cluster0-0oxvy.mongodb.net/test")
+			connect(URL_MONGODB)
 			res = request_viagens(datainicial, datafinal)
 			viagens = get_viagens_from_request(res)
 			print(str(len(viagens))+' Viagens salvas com sucesso')
